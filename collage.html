@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CollageCraft — Crie sua Colagem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════ TOPBAR ═══════════ -->
+<div class="topbar">
+  <span class="logo">Collage<span>craft</span></span>
+  <div class="topbar-sep"></div>
+  <div class="tool-group"><label>Fundo</label><input type="color" id="bgColor" value="#0c0c10" title="Cor de fundo"></div>
+  <div class="tool-group"><label>Borda</label><input type="color" id="borderColor" value="#a78bfa" title="Cor da borda"><input type="range" id="borderWidth" min="0" max="24" value="5" title="Espessura da borda"><span class="range-val" id="bwVal">5</span></div>
+  <div class="tool-group"><label>Raio</label><input type="range" id="cornerRadius" min="0" max="40" value="8" title="Raio dos cantos"><span class="range-val" id="crVal">8</span></div>
+  <div class="topbar-sep"></div>
+  <div class="tool-group annotation-tools">
+    <label>Anotar</label>
+    <input type="color" id="annotationColor" value="#f472b6" title="Cor da anotação">
+    <input type="number" id="annotationFontSize" min="8" max="72" value="16" title="Tamanho da fonte" style="width:38px;height:26px;padding:2px 4px;background:var(--bg-input);border:1px solid var(--border-medium);border-radius:4px;color:var(--text-primary);font-size:11px;text-align:center;">
+    <button class="tool-btn" id="boldBtn" title="Negrito"><b style="font-size:13px;">B</b></button>
+    <button class="tool-btn" id="italicBtn" title="Itálico"><i style="font-size:13px;">I</i></button>
+    <button class="tool-btn" data-tool="eyedropper" title="Conta-gotas"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="m14 13 6-6a2 2 0 0 0 0-3l-1-1a2 2 0 0 0-3 0l-6 6"/><path d="m9 8 7 7"/></svg></button>
+    <button class="tool-btn" data-tool="brush" title="Pincel"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 9-9a3 3 0 0 0-4-4l-9 9"/><path d="M7 16c-2 0-3 1-3 3 2 1 5 1 6-2"/></svg></button>
+    <button class="tool-btn" data-tool="circle" title="Círculo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></button>
+    <button class="tool-btn" data-tool="rect" title="Retângulo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
+    <button class="tool-btn" data-tool="stroke" title="Traço livre"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3-3 6-8 11-8 3 0 5 2 5 5"/></svg></button>
+    <button class="tool-btn" data-tool="line" title="Linha"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
+    <button class="tool-btn" data-tool="arrow" title="Seta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    <button class="tool-btn" data-tool="text" title="Escrever"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg></button>
+    <button class="tool-btn" data-tool="bubble" title="Balão de fala"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+    <button class="tool-btn" data-tool="eraser" title="Borracha"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z"/><path d="M17 17L7 7"/></svg></button>
+    <button class="tool-btn" data-tool="move" title="Mover"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l-3 3 3 3M9 5l3-3 3 3M19 9l3 3-3 3M9 19l3 3 3-3M2 12h20M12 2v20"/></svg></button>
+    <button class="tool-btn" data-tool="image-resize" title="Redimensionar imagem"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M21 3l-7 7"/><path d="M9 21H3v-6"/><path d="M3 21l7-7"/><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>
+    <button class="tool-btn" data-tool="undo" title="Desfazer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6M3 13l7.5-6.5a9 9 0 1 1 3.5 14.5"/></svg></button>
+    <button class="tool-btn" data-tool="redo" title="Refazer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6M21 13l-7.5-6.5A9 9 0 1 0 10 21"/></svg></button>
+    <button class="tool-btn" data-tool="clear" title="Apagar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
+    <button class="tool-btn tool-apply" data-tool="apply" title="Aplicar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-actions">
+    <button class="btn btn-icon" id="themeBtn" title="Tema claro/escuro"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" id="themeIcon"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
+    <button class="btn" id="clearBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg><span>Limpar</span></button>
+    <button class="btn btn-primary" id="downloadBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="dl-text">Baixar PNG</span></button>
+  </div>
+</div>
+
+<!-- ═══════════ WORKSPACE ═══════════ -->
+<div class="workspace">
+  <div class="sidebar">
+    <div class="sidebar-header">Layouts</div>
+    <div class="sidebar-scroll" id="sidebarLayouts"></div>
+  </div>
+  <div class="canvas-area" id="canvasArea">
+    <div class="canvas-bg-pattern"></div>
+    <div class="canvas-checker"></div>
+    <div class="canvas-wrap" id="canvasWrap"><canvas id="collageCanvas"></canvas><canvas id="annotationCanvas"></canvas><div class="drop-overlay" id="dropOverlay">Solte as imagens aqui ✦</div></div>
+  </div>
+  <div class="right-panel">
+    <div class="rp-header">Fotos & Builder</div>
+    <div class="rp-scroll" id="rightPanelScroll">
+      <div id="builderPanel" style="display:none;"></div>
+      <div id="slotPanelContainer">
+        <div class="rp-section-title">Fotos por Slot</div>
+        <div id="slotList"></div>
+        <button class="add-photos-btn" id="addPhotosBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Adicionar Fotos</button>
+        <div class="rp-section-title">Tamanho de Saída</div>
+        <div class="size-grid" id="sizeGrid">
+          <button class="size-btn active" data-w="800" data-h="600">Livre<small>800×600</small></button>
+          <button class="size-btn" data-w="1080" data-h="1080">Quadrado<small>1080×1080</small></button>
+          <button class="size-btn" data-w="1080" data-h="1350">Portrait<small>1080×1350</small></button>
+          <button class="size-btn" data-w="1920" data-h="1080">Story<small>1920×1080</small></button>
+          <button class="size-btn" data-w="1200" data-h="630">Banner<small>1200×630</small></button>
+          <button class="size-btn" data-w="2480" data-h="3508">A4<small>2480×3508</small></button>
+        </div>
+        <div class="rp-section-title">Cantos</div>
+        <div class="corner-row"><label class="rp-section-title">Raio</label><input type="range" id="cornerRadiusR" min="0" max="40" value="8"><span class="range-val" id="crValR">8</span></div>
+        <div class="rp-section-title">Espaçamento</div>
+        <div class="corner-row"><label class="rp-section-title">Gap</label><input type="range" id="gapRange" min="0" max="30" value="8"><span class="range-val" id="gapVal">8</span></div>
+        <div class="corner-row"><label class="rp-section-title">Margem</label><input type="range" id="paddingRange" min="0" max="40" value="14"><span class="range-val" id="padVal">14</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE -->
+<div class="mobile-bottom">
+  <button class="mob-tab active" id="mobTabLayouts" onclick="openSheet('layouts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Layouts</button>
+  <button class="mob-tab" id="mobTabPhotos" onclick="openSheet('photos')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Fotos</button>
+  <button class="mob-tab" id="mobTabStyle" onclick="openSheet('style')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Estilo</button>
+  <button class="mob-tab" onclick="document.getElementById('downloadBtn').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Baixar</button>
+</div>
+<div class="mobile-sheet" id="mobileSheet"><div class="sheet-handle"></div><div class="sheet-title" id="sheetTitle">Layouts</div><div id="sheetContent"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*" multiple>
+<input type="file" id="singleFileInput" accept="image/*">
+<div class="text-input-overlay" id="textInputOverlay"><input type="text" id="floatingTextInput" placeholder="Digite o texto..." /></div>
+<script src="script.js"></script>
+
+</body>
+</html>
