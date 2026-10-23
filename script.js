@@ -10,8 +10,8 @@ const state = {
   cornerRadius: 8,
   gap: 8,
   padding: 14,
-  canvasW: 800,
-  canvasH: 600,
+  canvasW: 1600,
+  canvasH: 1200,
   theme: 'dark',
   addingToSlot: null,
   layoutRatios: {},          // Armazena as proporções dos layouts prontos
@@ -93,6 +93,10 @@ const LAYOUTS = [
     resizers: [{label:'Célula 1', k:0, d:0.33}, {label:'Célula 2', k:1, d:0.33}],
     render:(c,W,H,si,opt)=>{const{gap,pad,bw,bc,cr}=opt; const r1=state.layoutRatios[0]||0.33, r2=state.layoutRatios[1]||0.33; const avail=H-pad*2-gap*2; const h1=avail*r1, h2=avail*r2, h3=avail*(1-r1-r2); img(c,si(0),pad,pad,W-pad*2,h1,bw,bc,cr,opt); img(c,si(1),pad,pad+h1+gap,W-pad*2,h2,bw,bc,cr,opt); img(c,si(2),pad,pad+h1+h2+gap*2,W-pad*2,h3,bw,bc,cr,opt);}
   },
+  { cat:'Compostos', name:'4 Vertical', id:'4vertical', slots:4,
+    thumb:(s)=>{for(let i=0;i<4;i++)rect(s,3+i*19,3,16,54);},
+    render:(c,W,H,si,opt)=>{const{gap,pad,bw,bc,cr}=opt; const cellW=(W-pad*2-gap*3)/4; for(let i=0;i<4;i++)img(c,si(i),pad+i*(cellW+gap),pad,cellW,H-pad*2,bw,bc,cr,opt);}
+  },
   { cat:'Compostos', name:'Dual V', id:'dualv', slots:2,
     thumb:(s)=>{rect(s,3,3,34,54);rect(s,43,3,34,54);},
     resizers: [{label:'Divisão', k:0, d:0.5}],
@@ -152,6 +156,73 @@ const ctx = canvas.getContext('2d');
 
 function getOpt() {
   return { bw: state.borderWidth, bc: state.borderColor, cr: state.cornerRadius, gap: state.gap, pad: state.padding, bg: state.bgColor };
+}
+
+const linkedRangeGroups = [
+  ['borderWidth', 'mobBorderWidth'],
+  ['cornerRadius', 'cornerRadiusR', 'mobCorner'],
+  ['gapRange', 'mobGap'],
+  ['paddingRange', 'mobPad']
+];
+
+function addRangeNumberInputs(root = document) {
+  root.querySelectorAll('input[type="range"]:not([data-number-input])').forEach(range => {
+    range.dataset.numberInput = 'true';
+    const percent = range.closest('.image-scale-control') || Number(range.max) <= 1;
+    const factor = percent ? 100 : 1;
+    const min = Number(range.min) * factor;
+    const max = Number(range.max) * factor;
+    const step = Number(range.step || 1) * factor;
+    const number = document.createElement('input');
+    number.type = 'number';
+    number.className = 'range-number';
+    number.min = String(min);
+    number.max = String(max);
+    number.step = String(step);
+    number.value = String(Number(range.value) * factor);
+    const label = range.title || range.closest('.ratio-control, .corner-row, .mob-ctrl-row')?.querySelector('label, .mob-ctrl-label')?.textContent || 'Valor';
+    number.setAttribute('aria-label', percent ? `${label} (porcentagem)` : label);
+    if (percent) number.title = 'Digite o valor em porcentagem';
+    range.insertAdjacentElement('afterend', number);
+    if (percent) {
+      const unit = document.createElement('span');
+      unit.className = 'range-unit';
+      unit.textContent = '%';
+      number.insertAdjacentElement('afterend', unit);
+    }
+
+    range.addEventListener('input', () => {
+      number.value = String(Number(range.value) * factor);
+    });
+    range.addEventListener('input', () => {
+      const group = linkedRangeGroups.find(ids => ids.includes(range.id));
+      if (!group) return;
+      group.forEach(id => {
+        if (id === range.id) return;
+        const linked = document.getElementById(id);
+        if (!linked) return;
+        linked.value = range.value;
+        const linkedNumber = linked.nextElementSibling;
+        if (linkedNumber?.classList.contains('range-number')) {
+          const linkedFactor = linked.closest('.image-scale-control') || Number(linked.max) <= 1 ? 100 : 1;
+          linkedNumber.value = String(Number(linked.value) * linkedFactor);
+        }
+      });
+    });
+    number.addEventListener('input', () => {
+      if (number.value === '') return;
+      const value = Number(number.value);
+      if (!Number.isFinite(value)) return;
+      range.value = String(clamp(value / factor, Number(range.min), Number(range.max)));
+      range.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    number.addEventListener('change', () => {
+      const value = clamp(Number(number.value) / factor, Number(range.min), Number(range.max));
+      range.value = String(value);
+      number.value = String(Number(range.value) * factor);
+      range.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
 }
 
 function grid(c,cols,rows,W,H,si,opt,cw,ch){
@@ -246,20 +317,22 @@ function renderCustomLayout(c,W,H,node,si,opt){
 function getSlotAt(x, y) {
   const W = canvas.width, H = canvas.height;
   const opt = getOpt();
-  const mockCtx = {
-    save(){}, restore(){}, beginPath(){}, clip(){}, rect(){}, roundRect(){}, drawImage(){}, fillRect(){}, stroke(){}, moveTo(){}, lineTo(){}, arc(){}, ellipse(){}, closePath(){}, translate(){}, scale(){}, fillText(){},
-    set fillStyle(v){}, set strokeStyle(v){}, set lineWidth(v){}, set font(v){}, set textAlign(v){}, set textBaseline(v){}
-  };
+  const hitTestCanvas = document.createElement('canvas');
+  const hitTestCtx = hitTestCanvas.getContext('2d');
   state.isHitTesting = { x, y, result: -1 };
   const si = i => ({ isSlotIdx: i });
-  if (isCustomMode() && state.customLayout) {
-    renderCustomLayout(mockCtx, W, H, state.customLayout, si, opt);
-  } else {
-    LAYOUTS[state.layoutIdx].render(mockCtx, W, H, si, opt);
+  let result;
+  try {
+    if (isCustomMode() && state.customLayout) {
+      renderCustomLayout(hitTestCtx, W, H, state.customLayout, si, opt);
+    } else {
+      LAYOUTS[state.layoutIdx].render(hitTestCtx, W, H, si, opt);
+    }
+    result = state.isHitTesting.result;
+  } finally {
+    delete state.isHitTesting;
   }
-  const res = state.isHitTesting.result;
-  delete state.isHitTesting;
-  return res;
+  return result;
 }
 
 // ═══════════════════════════════════════
@@ -278,7 +351,14 @@ function renderCollage(){
     lay.render(ctx, W, H, si, opt);
   }
 }
-function resizeCanvas(){ canvas.width=state.canvasW; canvas.height=state.canvasH; renderCollage(); resizeAnnotationCanvas(); }
+function resizeCanvas(){
+  canvas.width=state.canvasW;
+  canvas.height=state.canvasH;
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  renderCollage();
+  resizeAnnotationCanvas();
+}
 
 
 // ═══════════════════════════════════════
@@ -656,6 +736,7 @@ function buildMobStyle(container){
   document.getElementById('mobCorner').addEventListener('input',e=>{state.cornerRadius=+e.target.value;document.getElementById('mobCrVal').textContent=state.cornerRadius;renderCollage();});
   document.getElementById('mobGap').addEventListener('input',e=>{state.gap=+e.target.value;document.getElementById('mobGapVal').textContent=state.gap;renderCollage();});
   document.getElementById('mobPad').addEventListener('input',e=>{state.padding=+e.target.value;document.getElementById('mobPadVal').textContent=state.padding;renderCollage();});
+  addRangeNumberInputs(container);
 }
 
 document.getElementById('canvasArea').addEventListener('click',()=>{const sheet=document.getElementById('mobileSheet');if(sheet.classList.contains('open')){sheet.classList.remove('open');currentSheet=null;}});
@@ -1151,6 +1232,81 @@ function applyAnnotations() {
 buildSidebar();
 buildSlotPanel();
 resizeCanvas();
+addRangeNumberInputs(document);
+
+function setupPanelResize(handleId, panelSelector, direction, minWidth, maxWidth) {
+  const handle = document.getElementById(handleId);
+  const panel = document.querySelector(panelSelector);
+  const otherPanel = document.querySelector(direction === 'left' ? '.right-panel' : '.sidebar');
+  let startX = 0;
+  let startWidth = 0;
+  let activePointerId = null;
+
+  function getMaxWidth() {
+    const availableWidth = window.innerWidth - otherPanel.getBoundingClientRect().width - 240;
+    return Math.max(minWidth, Math.min(maxWidth, availableWidth));
+  }
+
+  function setWidth(width) {
+    const max = getMaxWidth();
+    const nextWidth = Math.round(Math.max(minWidth, Math.min(max, width)));
+    panel.style.width = `${nextWidth}px`;
+    handle.setAttribute('aria-valuemax', String(max));
+    handle.setAttribute('aria-valuenow', String(nextWidth));
+  }
+
+  function finishResize() {
+    if (activePointerId === null) return;
+    activePointerId = null;
+    panel.classList.remove('resizing');
+    document.body.classList.remove('panel-resizing');
+  }
+
+  handle.addEventListener('pointerdown', event => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    activePointerId = event.pointerId;
+    startX = event.clientX;
+    startWidth = panel.getBoundingClientRect().width;
+    handle.setPointerCapture(event.pointerId);
+    panel.classList.add('resizing');
+    document.body.classList.add('panel-resizing');
+  });
+
+  handle.addEventListener('pointermove', event => {
+    if (event.pointerId !== activePointerId) return;
+    const delta = (event.clientX - startX) * (direction === 'left' ? 1 : -1);
+    setWidth(startWidth + delta);
+  });
+
+  handle.addEventListener('pointerup', finishResize);
+  handle.addEventListener('pointercancel', finishResize);
+  handle.addEventListener('lostpointercapture', finishResize);
+
+  handle.addEventListener('keydown', event => {
+    const step = event.shiftKey ? 30 : 10;
+    const currentWidth = panel.getBoundingClientRect().width;
+    const expandKey = direction === 'left' ? 'ArrowRight' : 'ArrowLeft';
+    const shrinkKey = direction === 'left' ? 'ArrowLeft' : 'ArrowRight';
+
+    if (event.key === expandKey) setWidth(currentWidth + step);
+    else if (event.key === shrinkKey) setWidth(currentWidth - step);
+    else if (event.key === 'Home') setWidth(minWidth);
+    else if (event.key === 'End') setWidth(getMaxWidth());
+    else return;
+    event.preventDefault();
+  });
+
+  setWidth(panel.getBoundingClientRect().width);
+  window.addEventListener('resize', () => {
+    if (panel.offsetParent !== null && activePointerId === null) {
+      setWidth(panel.getBoundingClientRect().width);
+    }
+  });
+}
+
+setupPanelResize('resizeLayoutsPanel', '.sidebar', 'left', 120, 360);
+setupPanelResize('resizePhotosPanel', '.right-panel', 'right', 180, 480);
 
 // Extra annotation editing: selection, color, text format, rotation, bubble tail and eraser.
 Object.assign(annotationState, {
@@ -1923,15 +2079,16 @@ function img(c,image,x,y,w,h,bw,bc,cr,opt){
 }
 
 function shapeClip(c,image,x,y,w,h,opt,pathFn){
-  const{bw,bc}=opt;c.save();pathFn();c.clip();
+  const{bw,bc}=opt;c.save();pathFn();
   if (state.isHitTesting) {
     const {x: hX, y: hY} = state.isHitTesting;
-    if (hX >= x && hX <= x + w && hY >= y && hY <= y + h) {
+    if (c.isPointInPath(hX, hY)) {
       if (image && typeof image.isSlotIdx === 'number') state.isHitTesting.result = image.isSlotIdx;
     }
     c.restore();
     return;
   }
+  c.clip();
   if (image && typeof image.slot === 'number') state.slotRects[image.slot] = { x, y, w, h };
   const dark=state.theme==='dark';c.fillStyle=dark?'#1f1f2c':'#ede9f8';c.fillRect(x,y,w,h);
   if(image && image.isLayerStack) drawSlotLayerStack(c, image, x, y, w, h);
@@ -2216,6 +2373,7 @@ function buildSlotPanel(){
     }
     item.appendChild(actions); list.appendChild(item);
   }
+  addRangeNumberInputs(list);
 }
 
 function loadImageFile(file,slot){

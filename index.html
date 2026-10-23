@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CollageCraft — Crie sua Colagem</title>
+<title>CollageHere — Crie sua Colagem</title>
 <link rel="icon" type="image/x-icon" href="images/favicon.ico">
 <link rel="preconnect" href="https://fonts.gstatic.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
 
 <!-- ═══════════ TOPBAR ═══════════ -->
 <div class="topbar">
-  <span class="logo">Collage<span>craft</span></span>
+  <span class="logo">Collage<span>here</span></span>
   <div class="topbar-sep"></div>
   <div class="tool-group"><label>Fundo</label><input type="color" id="bgColor" value="#0c0c10" title="Cor de fundo"></div>
   <div class="tool-group"><label>Borda</label><input type="color" id="borderColor" value="#a78bfa" title="Cor da borda"><input type="range" id="borderWidth" min="0" max="24" value="5" title="Espessura da borda"><span class="range-val" id="bwVal">5</span></div>
@@ -32,7 +32,7 @@
     <button class="tool-btn" data-tool="rect" title="Retângulo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="1"/></svg></button>
     <button class="tool-btn" data-tool="stroke" title="Traço livre"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3-3 6-8 11-8 3 0 5 2 5 5"/></svg></button>
     <button class="tool-btn" data-tool="line" title="Linha"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/></svg></button>
-    <button class="tool-btn" data-tool="arrow" title="Seta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+    <button class="tool-btn" data-tool="arrow" title="Seta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" git config --global user.email "eidmaier@yahoo.com"stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
     <button class="tool-btn" data-tool="text" title="Escrever"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5l4 4L7 21l-4 1 1-4L16.5 3.5z"/></svg></button>
     <button class="tool-btn" data-tool="bubble" title="Balão de fala"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
     <button class="tool-btn" data-tool="eraser" title="Borracha"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16C2 15 2 13 3 12L13 2L22 11L20 20Z"/><path d="M17 17L7 7"/></svg></button>
@@ -56,6 +56,7 @@
   <div class="sidebar">
     <div class="sidebar-header">Layouts</div>
     <div class="sidebar-scroll" id="sidebarLayouts"></div>
+    <div class="panel-resize-handle" id="resizeLayoutsPanel" role="separator" aria-orientation="vertical" aria-label="Redimensionar painel de layouts" title="Segure e arraste para ajustar a largura" aria-valuemin="120" aria-valuemax="360" aria-valuenow="152" tabindex="0">⋮</div>
   </div>
   <div class="canvas-area" id="canvasArea">
     <div class="canvas-bg-pattern"></div>
@@ -72,12 +73,14 @@
         <button class="add-photos-btn" id="addPhotosBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Adicionar Fotos</button>
         <div class="rp-section-title">Tamanho de Saída</div>
         <div class="size-grid" id="sizeGrid">
-          <button class="size-btn active" data-w="800" data-h="600">Livre<small>800×600</small></button>
+          <button class="size-btn active" data-w="1600" data-h="1200">Livre<small>1600×1200</small></button>
           <button class="size-btn" data-w="1080" data-h="1080">Quadrado<small>1080×1080</small></button>
           <button class="size-btn" data-w="1080" data-h="1350">Portrait<small>1080×1350</small></button>
           <button class="size-btn" data-w="1920" data-h="1080">Story<small>1920×1080</small></button>
           <button class="size-btn" data-w="1200" data-h="630">Banner<small>1200×630</small></button>
           <button class="size-btn" data-w="2480" data-h="3508">A4<small>2480×3508</small></button>
+          <button class="size-btn" data-w="3840" data-h="1440">Wide 4K<small>3840×1440</small></button>
+          <button class="size-btn" data-w="3840" data-h="2160">4K UHD<small>3840×2160</small></button>
         </div>
         <div class="rp-section-title">Cantos</div>
         <div class="corner-row"><label class="rp-section-title">Raio</label><input type="range" id="cornerRadiusR" min="0" max="40" value="8"><span class="range-val" id="crValR">8</span></div>
@@ -86,6 +89,7 @@
         <div class="corner-row"><label class="rp-section-title">Margem</label><input type="range" id="paddingRange" min="0" max="40" value="14"><span class="range-val" id="padVal">14</span></div>
       </div>
     </div>
+    <div class="panel-resize-handle" id="resizePhotosPanel" role="separator" aria-orientation="vertical" aria-label="Redimensionar painel de fotos" title="Segure e arraste para ajustar a largura" aria-valuemin="180" aria-valuemax="480" aria-valuenow="260" tabindex="0">⋮</div>
   </div>
 </div>
 
